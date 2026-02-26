@@ -1,0 +1,4 @@
+[deploy]
+healthcheckPath = "/api/v1/cases"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
