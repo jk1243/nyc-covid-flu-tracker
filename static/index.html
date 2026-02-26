@@ -204,6 +204,14 @@
       .chart-card { padding: 1.5rem; }
     }
 
+    .chart-wrapper {
+      position: relative;
+      height: 320px;
+    }
+    @media (min-width: 640px) {
+      .chart-wrapper { height: 420px; }
+    }
+
     #status {
       margin-top: .75rem;
       font-size: .75rem;
@@ -272,7 +280,9 @@
 
 <!-- Chart -->
 <div class="chart-card">
-  <canvas id="chart" height="100"></canvas>
+  <div class="chart-wrapper">
+    <canvas id="chart"></canvas>
+  </div>
   <div id="status">Loading…</div>
 </div>
 
@@ -411,6 +421,7 @@
         data: { labels, datasets },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
           plugins: {
             legend: {
