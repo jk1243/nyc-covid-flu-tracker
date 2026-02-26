@@ -13,21 +13,72 @@
       background: #0f172a;
       color: #e2e8f0;
       min-height: 100vh;
-      padding: 2rem;
+      padding: 1rem;
+    }
+
+    @media (min-width: 640px) {
+      body { padding: 2rem; }
     }
 
     header {
-      margin-bottom: 2rem;
+      margin-bottom: 1.25rem;
     }
-    header h1 { font-size: 1.75rem; font-weight: 700; }
-    header p  { color: #94a3b8; margin-top: .25rem; font-size: .9rem; }
+    header h1 { font-size: 1.25rem; font-weight: 700; }
+    header p  { color: #94a3b8; margin-top: .25rem; font-size: .8rem; }
 
+    @media (min-width: 640px) {
+      header { margin-bottom: 2rem; }
+      header h1 { font-size: 1.75rem; }
+      header p  { font-size: .9rem; }
+    }
+
+    /* Quick-range buttons — 2-up grid on mobile, row on desktop */
+    .quick-ranges {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .5rem;
+      margin-bottom: 1rem;
+    }
+    @media (min-width: 640px) {
+      .quick-ranges {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 1.25rem;
+      }
+    }
+    .qr-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      border-radius: .5rem;
+      padding: .55rem .8rem;
+      font-size: .85rem;
+      cursor: pointer;
+      text-align: center;
+      transition: background .15s, color .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .qr-btn:hover, .qr-btn.active {
+      background: #3b82f6;
+      border-color: #3b82f6;
+      color: #fff;
+    }
+
+    /* Controls — single column on mobile, row on desktop */
     .controls {
       display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      align-items: flex-end;
+      flex-direction: column;
+      gap: .75rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (min-width: 640px) {
+      .controls {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
     }
 
     .control-group {
@@ -42,14 +93,24 @@
       color: #94a3b8;
     }
 
+    /* Date inputs and select fill full width on mobile */
     select, input[type="date"] {
+      width: 100%;
       background: #1e293b;
       border: 1px solid #334155;
       color: #e2e8f0;
       border-radius: .5rem;
-      padding: .45rem .75rem;
-      font-size: .875rem;
+      padding: .6rem .75rem;
+      font-size: 1rem;       /* prevents iOS auto-zoom on focus */
       cursor: pointer;
+      -webkit-appearance: none;
+    }
+    @media (min-width: 640px) {
+      select, input[type="date"] {
+        width: auto;
+        font-size: .875rem;
+        padding: .45rem .75rem;
+      }
     }
     select:focus, input[type="date"]:focus {
       outline: 2px solid #3b82f6;
@@ -60,87 +121,95 @@
       display: flex;
       gap: .75rem;
       align-items: center;
-      padding-bottom: .05rem;
     }
     .toggle-btn {
-      padding: .4rem 1rem;
+      flex: 1;
+      padding: .6rem 1rem;
       border-radius: 9999px;
       border: 2px solid transparent;
-      font-size: .85rem;
+      font-size: .9rem;
       font-weight: 600;
       cursor: pointer;
+      text-align: center;
       transition: opacity .15s, border-color .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (min-width: 640px) {
+      .toggle-btn { flex: none; font-size: .85rem; padding: .4rem 1rem; }
     }
     .toggle-btn.covid  { background: rgba(59,130,246,.15); border-color: #3b82f6; color: #93c5fd; }
     .toggle-btn.flu    { background: rgba(249,115,22,.15); border-color: #f97316; color: #fdba74; }
     .toggle-btn.off    { opacity: .35; }
 
     .btn {
+      width: 100%;
       background: #3b82f6;
       color: #fff;
       border: none;
       border-radius: .5rem;
-      padding: .45rem 1.1rem;
-      font-size: .875rem;
+      padding: .65rem 1.1rem;
+      font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
       transition: background .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (min-width: 640px) {
+      .btn { width: auto; font-size: .875rem; padding: .45rem 1.1rem; }
     }
     .btn:hover { background: #2563eb; }
 
-    .quick-ranges {
-      display: flex;
-      gap: .5rem;
-      flex-wrap: wrap;
+    /* Stat cards — 3-column grid, shrinks gracefully on narrow screens */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .75rem;
       margin-bottom: 1.25rem;
     }
-    .qr-btn {
-      background: #1e293b;
-      border: 1px solid #334155;
-      color: #94a3b8;
-      border-radius: .5rem;
-      padding: .3rem .8rem;
-      font-size: .8rem;
-      cursor: pointer;
-      transition: background .15s, color .15s;
-    }
-    .qr-btn:hover, .qr-btn.active {
-      background: #3b82f6;
-      border-color: #3b82f6;
-      color: #fff;
-    }
-
-    .chart-card {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 1rem;
-      padding: 1.5rem;
-    }
-
-    #status {
-      margin-top: 1rem;
-      font-size: .8rem;
-      color: #64748b;
-      text-align: right;
-    }
-
-    .stat-row {
-      display: flex;
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
+    @media (min-width: 640px) {
+      .stat-row { gap: 1.5rem; margin-bottom: 1.5rem; }
     }
     .stat-card {
       background: #1e293b;
       border: 1px solid #334155;
       border-radius: .75rem;
-      padding: 1rem 1.5rem;
-      min-width: 160px;
+      padding: .75rem 1rem;
     }
-    .stat-card .label { font-size: .75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; }
-    .stat-card .value { font-size: 1.6rem; font-weight: 700; margin-top: .25rem; }
+    @media (min-width: 640px) {
+      .stat-card { padding: 1rem 1.5rem; }
+    }
+    .stat-card .label {
+      font-size: .65rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    @media (min-width: 640px) {
+      .stat-card .label { font-size: .75rem; }
+    }
+    .stat-card .value { font-size: 1.2rem; font-weight: 700; margin-top: .2rem; }
+    @media (min-width: 640px) {
+      .stat-card .value { font-size: 1.6rem; }
+    }
     .stat-card.covid .value { color: #60a5fa; }
     .stat-card.flu   .value { color: #fb923c; }
+
+    .chart-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 1rem;
+      padding: .75rem;
+    }
+    @media (min-width: 640px) {
+      .chart-card { padding: 1.5rem; }
+    }
+
+    #status {
+      margin-top: .75rem;
+      font-size: .75rem;
+      color: #64748b;
+      text-align: right;
+    }
   </style>
 </head>
 <body>
