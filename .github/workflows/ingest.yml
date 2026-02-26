@@ -1,0 +1,41 @@
+name: Daily Data Ingestion
+
+on:
+  schedule:
+    # 9:00 AM ET = 14:00 UTC (EST) / 13:00 UTC (EDT)
+    # Running at 14:00 UTC covers both offsets; the ingestion is idempotent.
+    - cron: "0 14 * * *"
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore database cache
+        uses: actions/cache@v4
+        with:
+          path: data.db
+          key: sqlite-db-${{ runner.os }}
+          restore-keys: sqlite-db-
+
+      - name: Run ingestion
+        run: python -m ingestion.ingest
+
+      - name: Save updated database
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: data.db
+          key: sqlite-db-${{ runner.os }}-${{ github.run_id }}

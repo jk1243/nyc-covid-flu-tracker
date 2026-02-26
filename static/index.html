@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NYC Covid &amp; Flu Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    header {
+      margin-bottom: 2rem;
+    }
+    header h1 { font-size: 1.75rem; font-weight: 700; }
+    header p  { color: #94a3b8; margin-top: .25rem; font-size: .9rem; }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      align-items: flex-end;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+    }
+    .control-group label {
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #94a3b8;
+    }
+
+    select, input[type="date"] {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      border-radius: .5rem;
+      padding: .45rem .75rem;
+      font-size: .875rem;
+      cursor: pointer;
+    }
+    select:focus, input[type="date"]:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 1px;
+    }
+
+    .toggles {
+      display: flex;
+      gap: .75rem;
+      align-items: center;
+      padding-bottom: .05rem;
+    }
+    .toggle-btn {
+      padding: .4rem 1rem;
+      border-radius: 9999px;
+      border: 2px solid transparent;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s, border-color .15s;
+    }
+    .toggle-btn.covid  { background: rgba(59,130,246,.15); border-color: #3b82f6; color: #93c5fd; }
+    .toggle-btn.flu    { background: rgba(249,115,22,.15); border-color: #f97316; color: #fdba74; }
+    .toggle-btn.off    { opacity: .35; }
+
+    .btn {
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: .5rem;
+      padding: .45rem 1.1rem;
+      font-size: .875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn:hover { background: #2563eb; }
+
+    .quick-ranges {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+    .qr-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      border-radius: .5rem;
+      padding: .3rem .8rem;
+      font-size: .8rem;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .qr-btn:hover, .qr-btn.active {
+      background: #3b82f6;
+      border-color: #3b82f6;
+      color: #fff;
+    }
+
+    .chart-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 1rem;
+      padding: 1.5rem;
+    }
+
+    #status {
+      margin-top: 1rem;
+      font-size: .8rem;
+      color: #64748b;
+      text-align: right;
+    }
+
+    .stat-row {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .stat-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: .75rem;
+      padding: 1rem 1.5rem;
+      min-width: 160px;
+    }
+    .stat-card .label { font-size: .75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; }
+    .stat-card .value { font-size: 1.6rem; font-weight: 700; margin-top: .25rem; }
+    .stat-card.covid .value { color: #60a5fa; }
+    .stat-card.flu   .value { color: #fb923c; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>NYC Covid &amp; Flu Tracker</h1>
+  <p>Weekly respiratory illness cases reported by NYC DOHMH</p>
+</header>
+
+<!-- Quick range buttons -->
+<div class="quick-ranges">
+  <button class="qr-btn" data-weeks="12">Last 3 months</button>
+  <button class="qr-btn" data-weeks="26">Last 6 months</button>
+  <button class="qr-btn active" data-weeks="52">Last 12 months</button>
+  <button class="qr-btn" data-weeks="0">All time</button>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <div class="control-group">
+    <label>Start date</label>
+    <input type="date" id="startDate" />
+  </div>
+  <div class="control-group">
+    <label>End date</label>
+    <input type="date" id="endDate" />
+  </div>
+  <div class="control-group">
+    <label>Granularity</label>
+    <select id="granularity">
+      <option value="weekly" selected>Weekly</option>
+      <option value="monthly">Monthly</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label>Show</label>
+    <div class="toggles">
+      <button class="toggle-btn covid" id="toggleCovid">COVID-19</button>
+      <button class="toggle-btn flu"   id="toggleFlu">Influenza</button>
+    </div>
+  </div>
+  <button class="btn" id="applyBtn">Apply</button>
+</div>
+
+<!-- Summary stats -->
+<div class="stat-row">
+  <div class="stat-card covid">
+    <div class="label">Total COVID cases</div>
+    <div class="value" id="totalCovid">—</div>
+  </div>
+  <div class="stat-card flu">
+    <div class="label">Total Flu cases</div>
+    <div class="value" id="totalFlu">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Weeks shown</div>
+    <div class="value" id="weeksShown">—</div>
+  </div>
+</div>
+
+<!-- Chart -->
+<div class="chart-card">
+  <canvas id="chart" height="100"></canvas>
+  <div id="status">Loading…</div>
+</div>
+
+<script>
+  // ── State ────────────────────────────────────────────────────────────────
+  let showCovid = true;
+  let showFlu   = true;
+  let chart     = null;
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  function fmt(n) {
+    if (n == null) return '—';
+    return n.toLocaleString();
+  }
+
+  function toISODate(d) {
+    return d.toISOString().split('T')[0];
+  }
+
+  function setQuickRange(weeks) {
+    const end = new Date();
+    document.getElementById('endDate').value = toISODate(end);
+    if (weeks === 0) {
+      document.getElementById('startDate').value = '';
+    } else {
+      const start = new Date(end);
+      start.setDate(start.getDate() - weeks * 7);
+      document.getElementById('startDate').value = toISODate(start);
+    }
+  }
+
+  // ── Initial date range (last 12 months) ──────────────────────────────────
+  setQuickRange(52);
+
+  // ── Quick-range button behaviour ─────────────────────────────────────────
+  document.querySelectorAll('.qr-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.qr-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      setQuickRange(Number(btn.dataset.weeks));
+      loadData();
+    });
+  });
+
+  // ── Toggle buttons ────────────────────────────────────────────────────────
+  document.getElementById('toggleCovid').addEventListener('click', () => {
+    showCovid = !showCovid;
+    document.getElementById('toggleCovid').classList.toggle('off', !showCovid);
+    if (chart) {
+      chart.data.datasets[0].hidden = !showCovid;
+      chart.update();
+    }
+  });
+
+  document.getElementById('toggleFlu').addEventListener('click', () => {
+    showFlu = !showFlu;
+    document.getElementById('toggleFlu').classList.toggle('off', !showFlu);
+    if (chart) {
+      chart.data.datasets[1].hidden = !showFlu;
+      chart.update();
+    }
+  });
+
+  // ── Apply button ──────────────────────────────────────────────────────────
+  document.getElementById('applyBtn').addEventListener('click', loadData);
+
+  // ── Fetch & render ────────────────────────────────────────────────────────
+  async function loadData() {
+    const startDate  = document.getElementById('startDate').value;
+    const endDate    = document.getElementById('endDate').value;
+    const granularity = document.getElementById('granularity').value;
+
+    const params = new URLSearchParams({ granularity });
+    if (startDate) params.set('start_date', startDate);
+    if (endDate)   params.set('end_date',   endDate);
+
+    document.getElementById('status').textContent = 'Loading…';
+
+    let data;
+    try {
+      const res = await fetch(`/api/v1/cases?${params}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      data = await res.json();
+    } catch (err) {
+      document.getElementById('status').textContent = `Error: ${err.message}`;
+      return;
+    }
+
+    if (!data.length) {
+      document.getElementById('status').textContent = 'No data for selected range.';
+      return;
+    }
+
+    const labels      = data.map(d => d.date);
+    const covidValues = data.map(d => d.covid_cases ?? null);
+    const fluValues   = data.map(d => d.flu_cases   ?? null);
+
+    // Summary stats
+    const sumCovid = covidValues.reduce((a, v) => a + (v ?? 0), 0);
+    const sumFlu   = fluValues.reduce((a, v) => a + (v ?? 0), 0);
+    document.getElementById('totalCovid').textContent = fmt(sumCovid);
+    document.getElementById('totalFlu').textContent   = fmt(sumFlu);
+    document.getElementById('weeksShown').textContent = data.length;
+
+    const datasets = [
+      {
+        label: 'COVID-19',
+        data: covidValues,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,.1)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: data.length > 60 ? 0 : 3,
+        hidden: !showCovid,
+      },
+      {
+        label: 'Influenza',
+        data: fluValues,
+        borderColor: '#f97316',
+        backgroundColor: 'rgba(249,115,22,.1)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: data.length > 60 ? 0 : 3,
+        hidden: !showFlu,
+      },
+    ];
+
+    if (chart) {
+      chart.data.labels   = labels;
+      chart.data.datasets = datasets;
+      chart.update();
+    } else {
+      const ctx = document.getElementById('chart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              labels: { color: '#e2e8f0' },
+            },
+            tooltip: {
+              callbacks: {
+                label: ctx => ` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`,
+              },
+            },
+          },
+          scales: {
+            x: {
+              ticks: { color: '#94a3b8', maxTicksLimit: 12 },
+              grid:  { color: '#1e293b' },
+            },
+            y: {
+              ticks: {
+                color: '#94a3b8',
+                callback: v => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v,
+              },
+              grid: { color: '#334155' },
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+    }
+
+    const updatedAt = new Date().toLocaleTimeString();
+    document.getElementById('status').textContent = `Last updated: ${updatedAt} · ${data.length} data points`;
+  }
+
+  // Initial load
+  loadData();
+</script>
+</body>
+</html>
